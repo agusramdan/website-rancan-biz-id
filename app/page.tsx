@@ -268,7 +268,7 @@ export default function LandingPage() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start space-x-2">
                 <MapPin className="w-4 h-4 text-amber-500 mt-1 flex-shrink-0" />
-                <span>Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan</span>
+                <span>Jl. Senopati No. 41, Kebayoran Baru, South Jakarta 12190</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-amber-500" />
