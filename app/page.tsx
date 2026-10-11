@@ -17,16 +17,6 @@ interface Product {
   stock: string;
 }
 
-declare global {
-  interface Window {
-    $chatwoot?: {
-      toggle: () => void;
-      toggleBubbleVisibility: (show?: boolean) => void;
-      popoutChatWindow: () => void;
-    };
-  }
-}
-
 export default function LandingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,17 +80,13 @@ export default function LandingPage() {
             >
               <MessageSquare className="w-4 h-4" />
             </Link>
-            <button 
-              onClick={() => {
-                if (window.$chatwoot) {
-                  window.$chatwoot.toggle();
-                }
-              }}
+            <Link 
+              href="/chat"
               className="bg-stone-900 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-stone-800 transition-all flex items-center space-x-2 shadow-sm"
             >
               <MessageSquare className="w-4 h-4" />
               <span>Tanya CS / Pesan</span>
-            </button>
+            </Link>
           </div>
         </div>
       </header>
@@ -126,17 +112,13 @@ export default function LandingPage() {
             >
               Jelajahi Katalog Menu
             </a>
-            <button 
-              onClick={() => {
-                if (window.$chatwoot) {
-                  window.$chatwoot.toggle();
-                }
-              }}
+            <Link 
+              href="/chat"
               className="w-full sm:w-auto bg-stone-800 hover:bg-stone-700 text-white border border-stone-700 px-8 py-4 rounded-full font-medium transition-all text-center flex items-center justify-center space-x-2"
             >
               <MessageSquare className="w-4 h-4 text-amber-400" />
               <span>Mulai Percakapan CS</span>
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -206,9 +188,7 @@ export default function LandingPage() {
                     </span>
                     <button 
                       onClick={() => {
-                        if (window.$chatwoot) {
-                          window.$chatwoot.toggle();
-                        }
+                        window.location.href = '/chat';
                       }}
                       className="text-sm font-medium text-stone-900 hover:text-amber-700 flex items-center space-x-1 transition-colors"
                     >
