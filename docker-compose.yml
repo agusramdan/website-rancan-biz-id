@@ -1,0 +1,39 @@
+services:
+  web:
+    build: .
+    container_name: rancan-website
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3100:3100"
+    environment:
+      - NODE_ENV=production
+      - PORT=3100
+      - CS_API_URL=http://172.20.0.1:8902/v1/chat/completions
+      # Hybrid handover Chatwoot (spec docs/HANDOVER-SPEC.md §4)
+      - CHATWOOT_INTERNAL_URL=http://chatwoot-rails-1:3000
+      - CHATWOOT_ACCOUNT_ID=2
+      - CHATWOOT_INBOX_ID=2
+      - CHATWOOT_WEBSITE_TOKEN=oALwvhtgmK1DaeqqmcUPVD7x
+      - CW_ADMIN_TOKEN=${CW_ADMIN_TOKEN}
+      - TAKEOVER_CACHE_TTL_MS=8000
+      - AI_GATEWAY_KEY=${AI_GATEWAY_KEY}
+    env_file:
+      - .env
+    mem_limit: 512m
+    # F3 hardening: rootfs read-only, tulis hanya ke tmpfs /tmp & /app/.next/cache (Next.js butuh cache dir)
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - default
+      - chatwoot_default
+
+networks:
+  chatwoot_default:
+    external: true
