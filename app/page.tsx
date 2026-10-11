@@ -80,7 +80,6 @@ export default function LandingPage() {
             <a href="#katalog" className="hover:text-stone-900 transition-colors">Katalog Menu</a>
             <a href="#tentang" className="hover:text-stone-900 transition-colors">Filosofi Kami</a>
             <a href="#kontak" className="hover:text-stone-900 transition-colors">Lokasi & Kontak</a>
-            <Link href="/chat" className="hover:text-stone-900 transition-colors">Chat</Link>
           </nav>
 
           <div className="flex items-center space-x-4">
