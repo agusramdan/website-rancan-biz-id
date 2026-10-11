@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   ShoppingBag, ChevronRight, CheckCircle2, Phone, MapPin, Clock, 
   Coffee, Utensils, Award, Sparkles, MessageSquare
@@ -79,9 +80,17 @@ export default function LandingPage() {
             <a href="#katalog" className="hover:text-stone-900 transition-colors">Katalog Menu</a>
             <a href="#tentang" className="hover:text-stone-900 transition-colors">Filosofi Kami</a>
             <a href="#kontak" className="hover:text-stone-900 transition-colors">Lokasi & Kontak</a>
+            <Link href="/chat" className="hover:text-stone-900 transition-colors">Chat</Link>
           </nav>
 
           <div className="flex items-center space-x-4">
+            <Link
+              href="/chat"
+              aria-label="Halaman Chat CS"
+              className="md:hidden w-10 h-10 rounded-full border border-stone-300 text-stone-700 flex items-center justify-center hover:bg-stone-100 transition-all"
+            >
+              <MessageSquare className="w-4 h-4" />
+            </Link>
             <button 
               onClick={() => {
                 if (window.$chatwoot) {

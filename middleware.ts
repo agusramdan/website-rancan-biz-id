@@ -18,7 +18,10 @@ function cleanupExpired() {
 }
 
 export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname === '/api/chat' && request.method === 'POST') {
+  const isChatPost =
+    (request.nextUrl.pathname === '/api/chat' || request.nextUrl.pathname === '/api/chat-proxy') &&
+    request.method === 'POST';
+  if (isChatPost) {
     cleanupExpired();
 
     const forwardedFor = request.headers.get('x-forwarded-for');
@@ -68,5 +71,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/api/chat',
+  matcher: ['/api/chat', '/api/chat-proxy'],
 };

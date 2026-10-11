@@ -52,6 +52,17 @@ export interface HumanMessage {
   createdAt: number; // epoch ms
 }
 
+/** [HALAMAN /chat] Pesan widget untuk halaman chat fullscreen. */
+export interface ChatMessage {
+  id: number;
+  type: number; // 0=incoming (pengunjung), 1=outgoing, 3=template/echo bot, 2=activity
+  content: string;
+  createdAt: number; // epoch ms
+  senderType: string; // 'user' = agen human ATAU akun API bridge, '' = null
+  /** Klasifikasi tampilan: visitor | bot | human (lihat fetchWidgetConversation). */
+  senderKind: 'visitor' | 'bot' | 'human';
+}
+
 export interface PollResult {
   mode: 'human_active' | 'ai';
   messages: HumanMessage[];
@@ -327,5 +338,80 @@ export async function pollHumanMessages(sessionId: string, afterId: number): Pro
   } catch (err) {
     log('pollHumanMessages error (fail-open ke AI mode):', err);
     return { mode: 'ai', messages: [] };
+  }
+}
+
+/**
+ * [HALAMAN /chat] Ambil SELURUH riwayat percakapan widget untuk session
+ * (dipakai BFF POST /api/chat-proxy {action:'poll'}, full=true).
+ * Mengembalikan pesan type 0 (incoming/pengunjung), 1 (outgoing human),
+ * dan 3 (template/echo bot) — diurutkan by id. Type 2 (activity) dibuang.
+ * 401 → identitas basi: buang cache supaya syncVisitorMessage berikutnya
+ * membuat identitas baru (dan percakapan widget baru).
+ */
+export async function fetchWidgetConversation(sessionId: string): Promise<ChatMessage[] | null> {
+  let identity = identityCache.get(sessionId);
+  if (!identity) return null; // session belum pernah kirim pesan → history kosong
+
+  const fetchOnce = (jwt: string) =>
+    fetch(
+      `${CHATWOOT_URL}/api/v1/widget/messages?website_token=${encodeURIComponent(
+        CHATWOOT_WEBSITE_TOKEN,
+      )}&before=${Math.floor(Date.now() / 1000)}`,
+      { headers: { 'X-Auth-Token': jwt } },
+    );
+
+  try {
+    let res = await fetchOnce(identity.jwt);
+    if (res.status === 401) {
+      identityCache.delete(sessionId);
+      return null;
+    }
+    if (!res.ok) {
+      log(`widget/messages (full) gagal: ${res.status}`);
+      return null;
+    }
+    const data = await res.json();
+    const payload: WidgetMessage[] = Array.isArray(data?.payload) ? data.payload : [];
+
+    // Peluang: cache conversation_id bila belum ada (payload widget memuat conversation_id).
+    const convIdFromPayload = payload.find((m) => m.conversation_id)?.conversation_id;
+    if (convIdFromPayload && !getCachedConversationId(sessionId)) {
+      cacheConversationId(sessionId, Number(convIdFromPayload));
+    }
+
+    // Baseline bot (spec handover §1.3): stamp last_bot_reply_at dipasang bridge
+    // SETELAH tiap balasan bot sukses. Deployment ini memakai admin API utk balasan
+    // bot, jadi pesan bot = type 1 + sender user id 2 — BUKAN hanya type 3.
+    // Outgoing type 1 yang lebih BARU dari stamp = agen human. WidgetMessage sengaja
+    // tidak mengetik custom_attributes, jadi stamp diambil via fetchAdminConversation.
+    const conversationId = getCachedConversationId(sessionId);
+    let lastBotReplyAt = 0;
+    if (conversationId) {
+      const conv = await fetchAdminConversation(conversationId);
+      lastBotReplyAt = Number(conv?.custom_attributes?.last_bot_reply_at || 0);
+    }
+
+    return payload
+      .filter((m) => [0, 1, 3].includes(Number(m.message_type)))
+      .map((m) => {
+        const type = Number(m.message_type);
+        const createdAtSec = Number(m.created_at || 0); // detik epoch (sama dgn stamp)
+        let senderKind: ChatMessage['senderKind'] = 'bot';
+        if (type === 0) senderKind = 'visitor';
+        else if (type === 1 && (!lastBotReplyAt || createdAtSec > lastBotReplyAt)) senderKind = 'human';
+        return {
+          id: Number(m.id || 0),
+          type,
+          content: String(m.content || ''),
+          createdAt: createdAtSec * 1000,
+          senderType: String(m.sender?.type || ''),
+          senderKind,
+        };
+      })
+      .sort((a, b) => a.id - b.id);
+  } catch (err) {
+    log('fetchWidgetConversation error:', err);
+    return null;
   }
 }
