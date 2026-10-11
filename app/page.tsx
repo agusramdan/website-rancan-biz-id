@@ -272,7 +272,7 @@ export default function LandingPage() {
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-amber-500" />
-                <span>+62 811-9988-7766</span>
+                <a href="https://wa.me/6285776275379" target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors">+62 857-7627-5379</a>
               </li>
             </ul>
           </div>
