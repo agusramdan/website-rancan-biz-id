@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.460.0",
+    "nats": "^2.29.3",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18"
